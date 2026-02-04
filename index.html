@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SVG Drawing Tool</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #f2f2f2;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.toolbar {
+  padding: 10px;
+  background: #333;
+  color: white;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+button, input[type="color"] {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+svg {
+  flex: 1;
+  width: 100vw;
+  height: 100vh;
+  background: white;
+  cursor: crosshair;
+}
+</style>
+</head>
+
+<body>
+
+<div class="toolbar">
+  <label>Color: <input type="color" id="colorPicker"></label>
+  <button id="undoBtn">Undo</button>
+</div>
+
+<svg id="canvas" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+
+<script>
+const svg = document.getElementById("canvas");
+const colorPicker = document.getElementById("colorPicker");
+const undoBtn = document.getElementById("undoBtn");
+
+let drawing = false;
+let currentLine;
+let shapes = [];
+
+function getMousePosition(evt) {
+  const rect = svg.getBoundingClientRect();
+  return {
+    x: (evt.clientX - rect.left) / rect.width * 100,
+    y: (evt.clientY - rect.top) / rect.height * 100
+  };
+}
+
+svg.addEventListener("mousedown", e => {
+  drawing = true;
+  const pos = getMousePosition(e);
+
+  currentLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  currentLine.setAttribute("x1", pos.x);
+  currentLine.setAttribute("y1", pos.y);
+  currentLine.setAttribute("x2", pos.x);
+  currentLine.setAttribute("y2", pos.y);
+  currentLine.setAttribute("stroke", colorPicker.value);
+  currentLine.setAttribute("stroke-width", "0.5");
+  currentLine.setAttribute("stroke-linecap", "round");
+
+  svg.appendChild(currentLine);
+  shapes.push(currentLine);
+});
+
+svg.addEventListener("mousemove", e => {
+  if (!drawing) return;
+  const pos = getMousePosition(e);
+  currentLine.setAttribute("x2", pos.x);
+  currentLine.setAttribute("y2", pos.y);
+});
+
+svg.addEventListener("mouseup", () => drawing = false);
+svg.addEventListener("mouseleave", () => drawing = false);
+
+undoBtn.addEventListener("click", () => {
+  const last = shapes.pop();
+  if (last) svg.removeChild(last);
+});
+</script>
+
+</body>
+</html>
